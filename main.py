@@ -2,74 +2,64 @@ from bs4 import BeautifulSoup
 import lxml
 import requests
 
-WEB_PAGE = "https://news.ycombinator.com/news"
-WEB_FILE = "./data/ycombinator_news.html"
+WEB_PAGE = "https://www.empireonline.com/movies/features/best-movies-2/"
+WEB_FILE = "./data/100_best_movies.html"
 
 
-def get_web_page(url, file):
+def get_web_page():
     # Get web page
-    response = requests.get(url)
+    response = requests.get(WEB_PAGE)
 
     # Save web page to file
-    with open(file, mode="w", encoding="utf-8") as fp:
+    with open(WEB_FILE, mode="w", encoding="utf-8") as fp:
         fp.write(response.text)
 
 
-def read_web_file(file):
-    # Read the web page from file
-    with open(file, mode="r", encoding="utf-8") as fp:
-        content = fp.read()
-
-    return BeautifulSoup(content, "html.parser")
-
-
-def get_first_article(soup):
-    # Get first article details
-    article_tag = soup.find(name="a", class_="storylink")
-    article_text = article_tag.getText()
-    article_link = article_tag.get("href")
-    article_score = soup.find(class_="score")
-    article_upvote = article_score.getText()
-
-    return article_text, article_link, article_upvote
+def read_web_file():
+    try:
+        open(WEB_FILE)
+    except FileNotFoundError:
+        get_web_page()
+    else:
+        pass
+    finally:
+        # Read the web page from file
+        with open(WEB_FILE, mode="r", encoding="utf-8") as fp:
+            content = fp.read()
+        return BeautifulSoup(content, "html.parser")
 
 
-def get_all_articles(soup):
+def get_all_titles(soup):
     # Get all article details
-    articles = soup.findAll(name="a", class_="storylink")
-    article_texts = []
-    article_links = []
-    for article in articles:
-        article_texts.append(article.getText())
-        article_links.append(article.get("href"))
-    upvotes = soup.findAll(class_="score")
-    article_upvotes = [int(item.getText().strip(" points")) for item in upvotes]
-
-    # print(article_upvotes)
-    return article_texts, article_links, article_upvotes
-
-
-def get_most_upvoted(lists):
-    index = lists[2].index(max(lists[2]))
-
-    # print(lists[0][index])
-    # print(lists[1][index])
-    # print(index)
-    return lists[0][index], lists[1][index], index
+    all_titles = soup.findAll(name="h3", class_="title")
+    title_texts = []
+    title_index = []
+    index = 100
+    for title in all_titles:
+        text = title.getText().lstrip("0123456789) :")
+        title_index.append(index)
+        title_texts.append(text)
+        index -= 1
+    return title_index, title_texts
 
 
 def sort_results(lists):
     # The list used as the sort index must be the first item in zip()
-    sorted_lists = [(x, y, z) for (z, x, y) in sorted(zip(lists[2], lists[0], lists[1]), reverse=True)]
+    sorted_lists = [(x, y) for (x, y) in sorted(zip(lists[0], lists[1]))]
 
     # print(sorted_lists)
     return sorted_lists
 
 
+def save_titles(list):
+    with open("./data/film_titles.txt", mode="w", encoding="utf-8") as fp:
+        for item in list:
+            fp.writelines(f"{item[0]})  \t{item[1]}\n")
+
+
 if __name__ == "__main__":
-    # get_web_page(url=WEB_PAGE, file=WEB_FILE)
-    soup = read_web_file(WEB_FILE)
-    # first_result = get_first_article(soup)
-    all_results = get_all_articles(soup)
-    # most_upvoted = get_most_upvoted(all_results)
-    sorted_results = sort_results(all_results)
+    result = read_web_file()
+    titles = get_all_titles(result)
+    sorted_titles = sort_results(titles)
+    print(sorted_titles)
+    save_titles(sorted_titles)
