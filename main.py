@@ -1,18 +1,33 @@
 from bs4 import BeautifulSoup
-import lxml
-import requests
+# import lxml
+# import requests
+from requests_html import HTMLSession
 
 WEB_PAGE = "https://www.empireonline.com/movies/features/best-movies-2/"
 WEB_FILE = "./data/100_best_movies.html"
 
 
+# # The web page is now rendered by JavaScript so this no longer works
+# def get_web_page():
+#     # Get web page
+#     response = requests.get(WEB_PAGE)
+#
+#     # Save web page to file
+#     with open(WEB_FILE, mode="w", encoding="utf-8") as fp:
+#         fp.write(response.text)
+
+# Using requests_html to render JavaScript
 def get_web_page():
-    # Get web page
-    response = requests.get(WEB_PAGE)
+    # create an HTML Session object
+    session = HTMLSession()
+    # Use the object above to connect to needed webpage
+    response = session.get(WEB_PAGE)
+    # Run JavaScript code on webpage
+    response.html.render()
 
     # Save web page to file
     with open(WEB_FILE, mode="w", encoding="utf-8") as fp:
-        fp.write(response.text)
+        fp.write(response.html.html)
 
 
 def read_web_file():
@@ -31,7 +46,7 @@ def read_web_file():
 
 def get_all_titles(soup):
     # Get all article details
-    all_titles = soup.findAll(name="h3", class_="title")
+    all_titles = soup.findAll(name="h3")  # , class_="title")
     title_texts = []
     title_index = []
     index = 100
@@ -57,9 +72,14 @@ def save_titles(list):
             fp.writelines(f"{item[0]})  \t{item[1]}\n")
 
 
+#  NOTE: We could use the slice() function, or [::-1] slice operator to reverse the list,
+#    e.g. movie_titles = title_texts[::-1] ... creates a new list movie_titles
+
 if __name__ == "__main__":
     result = read_web_file()
+    # print(f"result = {result}")
     titles = get_all_titles(result)
+    # print(f"titles = {titles}")
     sorted_titles = sort_results(titles)
-    print(sorted_titles)
+    # print(f"sorted_titles = {sorted_titles}")
     save_titles(sorted_titles)
