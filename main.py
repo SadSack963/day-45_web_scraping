@@ -77,9 +77,9 @@ def save_titles(list):
 
 if __name__ == "__main__":
     result = read_web_file()
-    # print(f"result = {result}")
-    titles = get_all_titles(result)
-    # print(f"titles = {titles}")
-    sorted_titles = sort_results(titles)
-    # print(f"sorted_titles = {sorted_titles}")
-    save_titles(sorted_titles)
+    print(f"result = {result}")
+    # titles = get_all_titles(result)
+    # # print(f"titles = {titles}")
+    # sorted_titles = sort_results(titles)
+    # # print(f"sorted_titles = {sorted_titles}")
+    # save_titles(sorted_titles)
